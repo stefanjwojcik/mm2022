@@ -1,5 +1,5 @@
 using Test
-using mm2022, DataFrames
+using mm2022, DataFrames, CSV
 
 # Notes:
 # winning model in 2019 used an xgboost model with a glmer measure of quality (RE's)
@@ -9,12 +9,12 @@ using mm2022, DataFrames
 #   Difference in the variance of turnovers in the game to game free throw percentage.
 
 # Get the submission sample
-submission_sample = CSV.read("data/MSampleSubmissionStage2.csv", DataFrame)
+#submission_sample = CSV.read("data/MSampleSubmissionStage2.csv", DataFrame)
 
 # Get the source seeds:
 df_seeds = CSV.read("data/MDataFiles_Stage1/MNCAATourneySeeds.csv", DataFrame)
-season_df = CSV.read("data/MDataFiles_Stage1/MRegularSeasonCompactResults.csv", DataFrame) 
-season_df_detail = CSV.read("data/MDataFiles_Stage1/MRegularSeasonDetailedResults.csv", DataFrame) 
+#season_df = CSV.read("data/MDataFiles_Stage1/MRegularSeasonCompactResults.csv", DataFrame) 
+#season_df_detail = CSV.read("data/MDataFiles_Stage1/MRegularSeasonDetailedResults.csv", DataFrame) 
 tourney_df  = CSV.read("data/MDataFiles_Stage1/MNCAATourneyCompactResults.csv", DataFrame) 
 #ranefs = CSV.read("data/raneffects.csv", DataFrame) # eed to make it 
 ##############################################################

@@ -2,7 +2,7 @@
 This file is responsible for creating basic ncaa seeds and for creating the outcome 'result'
 """
 
-function seed_to_int(seed::String)
+function seed_to_int(seed::AbstractString)
 	#Get just the digits from the seeding. Return as int
 	parse(Int, seed[2:3])
 end
@@ -23,8 +23,8 @@ function make_seeds(df_seeds, df_tour)
 	rename!(df_winseeds, :TeamID => :WTeamID, :seed_int => :WSeed)
 	rename!(df_lossseeds, :TeamID => :LTeamID, :seed_int => :LSeed)
 
-	df_dummy = join(df_tour, df_winseeds, on = [:Season, :WTeamID], kind = :left)
-	df_concat = join(df_dummy, df_lossseeds, on = [:Season, :LTeamID])
+	df_dummy = leftjoin(df_tour, df_winseeds, on = [:Season, :WTeamID])
+	df_concat = innerjoin(df_dummy, df_lossseeds, on = [:Season, :LTeamID])
 	df_concat.SeedDiff = df_concat.WSeed - df_concat.LSeed
 
 	df_wins = copy(df_concat[:, [:Season, :WTeamID, :LTeamID, :SeedDiff]])
