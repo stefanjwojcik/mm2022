@@ -43,9 +43,9 @@ function final_elo_per_season(df::DataFrame, team_id::Int64)
 	unique!(d, :Season)
 	w_mask = d.WTeamID .== team_id
 	l_mask = d.LTeamID .== team_id
-	d.season_elo = 0.0
-	d.season_elo[w_mask] .= d.w_elo[w_mask]
-	d.season_elo[l_mask] .= d.l_elo[l_mask]
+	d.season_elo .= 0.0
+	d.season_elo[findall(w_mask)] .= d.w_elo[findall(w_mask)]
+	d.season_elo[findall(l_mask)] .= d.l_elo[findall(l_mask)]
 	out = DataFrame(team_id = team_id, season = d.Season, season_elo = d.season_elo)
 end
 
@@ -70,8 +70,8 @@ end
 function iterate_games(elo_obj::Elo)
 
 	# update the basic info
-	elo_obj.data_path = "/home/swojcik/mm2020/data/MDataFiles_Stage1/MRegularSeasonCompactResults.csv"
-	elo_obj.rs = CSVFiles.load(elo_obj.data_path) |> DataFrame
+	#elo_obj.data_path = path_to_compact #"/home/swojcik/mm2020/data/MDataFiles_Stage1/MRegularSeasonCompactResults.csv"
+	elo_obj.rs = CSV.read(elo_obj.data_path, DataFrame)
 	elo_obj.rs.margin = elo_obj.rs.WScore - elo_obj.rs.LScore
 	elo_obj.HOME_ADVANTAGE = 100.0
 	elo_obj.team_ids = unique([ elo_obj.rs.WTeamID ; elo_obj.rs.LTeamID ]) #all team ids
@@ -134,19 +134,19 @@ function get_elo_tourney_diffs(season_elos, df_tour)
 	rename!(df_winelo, :team_id => :WTeamID, :season => :Season, :season_elo => :W_elo)
 	rename!(df_losselo, :team_id => :LTeamID, :season => :Season, :season_elo => :L_elo)
 	# Merge in the compact results
-	df_dummy = join(df_tour, df_winelo, on = [:Season, :WTeamID], kind = :left)
-	df_concat = join(df_dummy, df_losselo, on = [:Season, :LTeamID])
+	df_dummy = leftjoin(df_tour, df_winelo, on = [:Season, :WTeamID])
+	df_concat = innerjoin(df_dummy, df_losselo, on = [:Season, :LTeamID])
 	df_concat.Elo_diff = df_concat.W_elo - df_concat.L_elo
-	deletecols!(df_concat, [:W_elo, :L_elo])
+	select!(df_concat, Not([:W_elo, :L_elo]))
 
 	df_wins = DataFrame()
 	df_wins = copy(df_concat[ :, [:Season, :WTeamID, :LTeamID, :Elo_diff]])
-	df_wins.Result = 1
+	df_wins.Result .= 1
 
 	df_losses = DataFrame()
 	df_losses = copy(df_concat[ :, [:Season, :WTeamID, :LTeamID]])
-	df_losses.Elo_diff = -1*df_concat.Elo_diff
-	df_losses.Result = 0
+	df_losses.Elo_diff .= -1*df_concat.Elo_diff
+	df_losses.Result .= 0
 
 	df_out = [df_wins; df_losses]
 

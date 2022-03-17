@@ -25,7 +25,7 @@ seeds_features = make_seeds(copy(df_seeds), copy(tourney_df))
 Wfdat, Lfdat, effdat = eff_stat_seasonal_means(copy(season_df_detail))
 eff_features = get_eff_tourney_diffs(Wfdat, Lfdat, effdat, copy(tourney_df))
 # ELO
-season_elos = elo_ranks(Elo())
+season_elos = elo_ranks(Elo("data/MDataFiles_Stage1/MRegularSeasonCompactResults.csv"))
 elo_features = get_elo_tourney_diffs(season_elos, copy(tourney_df))
 # Momentum
 momentum_features, momentum_df = make_momentum(copy(tourney_df), copy(season_df))
