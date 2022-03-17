@@ -70,30 +70,39 @@ function eff_stat_seasonal_means(df::DataFrame) # this is season_df_detail
 	W_cols = [!in(x, [ "WScore"]) & occursin(r"W|Season", x)  for x in String.(names(df))]	# make win and loss average datasets
 	L_cols = [!in(x, [ "LScore"]) & occursin(r"L|Season", x)  for x in String.(names(df))]	# make win and loss average datasets
 
-	Wmean = DataFrames.aggregate(df[:, W_cols], [:WTeamID, :Season], mean)
+	#Wmean = df |> 
+	#		(data -> groupby(data, [:WTeamID, :Season])) |> 
+	#	(data -> combine(data[:, W_cols], Symbol.(names(data[:, W_cols])) .=> mean, renamecols=false))
+
+	Wmean = agg(df[:, W_cols], [:WTeamID, :Season], mean)
 	alt_names = [Symbol(replace(String(x), "W" => "")) for x in names(Wmean)]
 	# And actually alter the names in place
-	names!(Wmean, alt_names)
+	rename!(Wmean, alt_names)
 	# losing team
-	print(L_cols)
-	Lmean = DataFrames.aggregate(df[:, L_cols], [:LTeamID, :Season], mean)
+	Lmean = agg(df[:, L_cols], [:LTeamID, :Season], mean)
+	#Lmean = df |> 
+	#(data -> (groupby(data, [:LTeamID, :Season])) |> 
+	#(data -> combine(data[:, L_cols], Symbol.(names(data[:, L_cols])) .=> mean, renamecols=false))
+
 
 	alt_names = [Symbol(replace(String(x), "L" => "")) for x in names(Lmean)]
 	# And actually alter the names in place
-	names!(Lmean, alt_names)
+	rename!(Lmean, alt_names)
 	# concatenate both and take average over team and season
 	fdat = [Wmean;Lmean] # this is how you concatenate in JULIA
 	# get the mean when winning/losing
-	fdat_mean = DataFrames.aggregate(fdat, [:TeamID, :Season], mean)
+	fdat_mean = agg(fdat, [:TeamID, :Season], mean)
+
+
 	alt_names = [Symbol(replace(String(x), "_mean" => "")) for x in names(fdat_mean)]
-	names!(fdat_mean, alt_names)
+	rename!(fdat_mean, alt_names)
 	# create two functions - for when team wins/loses for merging
 	Wfdat = copy(fdat_mean)
 	Wfdat_names = Symbol.([x == "Season" ? x : "W"*x for x in String.(names(Wfdat))])
-	names!(Wfdat, Wfdat_names)
+	rename!(Wfdat, Wfdat_names)
 	Lfdat = copy(fdat_mean)
 	Lfdat_names = Symbol.([x == "Season" ? x : "L"*x for x in String.(names(Lfdat))])
-	names!(Lfdat, Lfdat_names)
+	rename!(Lfdat, Lfdat_names)
 	return Wfdat, Lfdat, fdat_mean
 end
 

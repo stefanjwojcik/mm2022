@@ -15,7 +15,8 @@ using CSV, DataFrames, Statistics, MLJ
 ##############################################################################
 
 export  make_seeds,
-        get_seed_submission_diffs#,
+        get_seed_submission_diffs,
+        agg
         #eff_stat_seasonal_means,
         #get_eff_tourney_diffs,
         #get_eff_submission_diffs,
@@ -35,6 +36,7 @@ export  make_seeds,
 ##
 ##############################################################################
 
+include("utils.jl")
 include("efficiency.jl")
 include("seeds.jl")
 #include("elo.jl")
