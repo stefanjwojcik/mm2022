@@ -70,13 +70,13 @@ function eff_stat_seasonal_means(df::DataFrame) # this is season_df_detail
 	W_cols = [!in(x, [ "WScore"]) & occursin(r"W|Season", x)  for x in String.(names(df))]	# make win and loss average datasets
 	L_cols = [!in(x, [ "LScore"]) & occursin(r"L|Season", x)  for x in String.(names(df))]	# make win and loss average datasets
 
-	Wmean = aggregate(df[:, W_cols], [:WTeamID, :Season], mean)
+	Wmean = DataFrames.aggregate(df[:, W_cols], [:WTeamID, :Season], mean)
 	alt_names = [Symbol(replace(String(x), "W" => "")) for x in names(Wmean)]
 	# And actually alter the names in place
 	names!(Wmean, alt_names)
 	# losing team
 	print(L_cols)
-	Lmean = aggregate(df[:, L_cols], [:LTeamID, :Season], mean)
+	Lmean = DataFrames.aggregate(df[:, L_cols], [:LTeamID, :Season], mean)
 
 	alt_names = [Symbol(replace(String(x), "L" => "")) for x in names(Lmean)]
 	# And actually alter the names in place
@@ -84,7 +84,7 @@ function eff_stat_seasonal_means(df::DataFrame) # this is season_df_detail
 	# concatenate both and take average over team and season
 	fdat = [Wmean;Lmean] # this is how you concatenate in JULIA
 	# get the mean when winning/losing
-	fdat_mean = aggregate(fdat, [:TeamID, :Season], mean)
+	fdat_mean = DataFrames.aggregate(fdat, [:TeamID, :Season], mean)
 	alt_names = [Symbol(replace(String(x), "_mean" => "")) for x in names(fdat_mean)]
 	names!(fdat_mean, alt_names)
 	# create two functions - for when team wins/loses for merging

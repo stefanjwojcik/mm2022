@@ -1,4 +1,4 @@
-using Test
+using Test, Revise 
 using mm2022, DataFrames, CSV
 
 # Notes:
