@@ -43,6 +43,7 @@ end
 function get_seed_submission_diffs(submission_sample, seeds_df)
 	#seed to int
 	submission_sample.SeedDiff = repeat([-99], nrow(submission_sample))
+	submission_sample.row = collect(1:nrow(submission_sample))
 	seeds_df.seed_int = seed_to_int.(seeds_df.Seed)
 	for row in eachrow(submission_sample)
 		season, team1, team2 = parse.(Int, split(row.ID, "_"))

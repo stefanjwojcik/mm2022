@@ -12,10 +12,10 @@ using mm2022, DataFrames, CSV
 submission_sample = CSV.read("data/MSampleSubmissionStage2.csv", DataFrame)
 
 # Get the source seeds:
-df_seeds = CSV.read("data/MDataFiles_Stage1/MNCAATourneySeeds.csv", DataFrame)
-season_df = CSV.read("data/MDataFiles_Stage1/MRegularSeasonCompactResults.csv", DataFrame) 
-season_df_detail = CSV.read("data/MDataFiles_Stage1/MRegularSeasonDetailedResults.csv", DataFrame) 
-tourney_df  = CSV.read("data/MDataFiles_Stage1/MNCAATourneyCompactResults.csv", DataFrame) 
+df_seeds = CSV.read("data/MDataFiles_Stage2/MNCAATourneySeeds.csv", DataFrame)
+season_df = CSV.read("data/MDataFiles_Stage2/MRegularSeasonCompactResults.csv", DataFrame) 
+season_df_detail = CSV.read("data/MDataFiles_Stage2/MRegularSeasonDetailedResults.csv", DataFrame) 
+tourney_df  = CSV.read("data/MDataFiles_Stage2/MNCAATourneyCompactResults.csv", DataFrame) 
 #ranefs = CSV.read("data/raneffects.csv", DataFrame) # eed to make it 
 ##############################################################
 # Create training features for valid historical data
