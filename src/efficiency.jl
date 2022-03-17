@@ -169,7 +169,9 @@ function get_eff_submission_diffs(submission_sample, fdat)
 		out = DataFrame()
 		# small loop to take diffs
 		for var in vars_to_add
-			out[Symbol("Diff_"*var)] = row1[Symbol(var)]-row2[Symbol(var)]
+			if var != "Season"
+				out[:, Symbol("Diff_"*var)] = row1[:, Symbol(var)]-row2[:, Symbol(var)]
+			end
 		end
 		# append the final data
 		append!(final_out, out)

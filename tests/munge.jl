@@ -5,34 +5,39 @@ submission_features = hcat(seed_submission, eff_submission, elo_submission, mome
 ##########################################################################
 
 # TRAINING
-
+include("runtests.jl")
 # Join the two feature sets
-featurecols = [names(seed_submission), names(eff_submission), names(elo_submission), names(momentum_submission), names(ranef_submission)]
+featurecols = [names(seed_submission), names(eff_submission), names(elo_submission), names(momentum_submission)]
 featurecols = collect(Iterators.flatten(featurecols))
-fullX = [fdata[featurecols]; submission_features[featurecols]]
+fullX = [fdata[:, featurecols]; submission_features[:, featurecols]]
 fullY = [seeds_features_min.Result; repeat([0], size(submission_features, 1))]
 
 ####################################0
-using DataFrames, CSVFiles, Pipe, MLJ, LossFunctions
+using MLJ, LossFunctions, Pipe, MLJXGBoostInterface
 # reload the saved data
 #save("fullX.csv", fullX)
 #save("fullY.csv", DataFrame(y=fullY))
 
-fullX = CSVFiles.load("fullX.csv") |> DataFrame
-fullY = CSVFiles.load("fullY.csv") |> DataFrame
+#fullX = CSVFiles.load("fullX.csv") |> DataFrame
+#fullY = CSVFiles.load("fullY.csv") |> DataFrame
 
 # create array of training and testing rows
-train, test = partition(1:2230, 0.7, shuffle=true)
-validate = [2231:size(fullY, 1)...]
+train, test = partition(1:2362, 0.7, shuffle=true) #the original dataset size is 2362
+validate = [2363:size(fullY, 1)...] # this is the submission data 
 
 # Recode result to win/ loss
-y = @pipe categorical(fullY.y) |> recode(_, 0=>"lose",1=>"win");
-
+y = categorical([fullY[x] == 0 ? "lose" : "win" for x in 1:length(fullY)])
 
 #################################################
 @load XGBoostClassifier()
 xgb = XGBoostClassifier()
 fullX_co = coerce(fullX, Count=>Continuous)
+if nrow(dropmissing(fullX_co)) == nrow(fullX_co)
+        dropmissing!(fullX_co)
+        @info "dropped missings without issues"
+else 
+        @warn "attempt to drop missings could result in problems"
+end
 #--- Setting the rounds of the xgb, then tuning depth and children
 xgb.num_round = 4
 xgb.max_depth = 3
@@ -42,15 +47,16 @@ xgb.eta = .35
 xgb.subsample = 0.6142857142857143
 xgb.colsample_bytree = 1.0
 
-xgb_forest = EnsembleModel(atom=xgb, n=1000);
+xgb_forest = EnsembleModel(model=xgb, n=1000);
 #xgb_forest.bagging_fraction = .8
 xg_model = machine(xgb_forest, fullX_co, y)
 fit!(xg_model, rows = train)
 yhat = predict(xg_model, rows=test)
 mce = cross_entropy(yhat, y[test]) |> mean
 accuracy(predict_mode(xg_model, rows=test), y[test])
+
 # This is a working single model for XGBOOST Classifier
-xgb_forest = EnsembleModel(atom=xgb, n=100);
+xgb_forest = EnsembleModel(xgb, n=100);
 xgb_forest.bagging_fraction = .72
 N_range = range(xgb_forest, :n,
                 lower=1, upper=200)
@@ -71,11 +77,15 @@ plot(params[:, 1], measures, seriestype=:scatter)
 ####################################################
 # Predict onto the submission_sample
 sub_sample = predict(xg_model, rows = validate)
-submission_sample[:Pred] = pdf.(sub_sample, "win")
-save("submission_xgb.csv", submission_sample)
+submission_sample[:, :Pred] = pdf.(sub_sample, "win")
+CSV.write("data/submission_xgb2022_no_tune.csv", select(submission_sample, Not(:SeedDiff) ))
+
+# Figure out which teams you picked 
+
+
 ############################### TUNING THE SUBMISSION
 using LossFunctions
-loss = LogitDistLoss()
+loss = MLJ.LogitDistLoss()
 
 logloss(yhat, y) = -1/length(y) * sum(y .* log.(yhat.+1e-15) .+ (1 .- y) .* log.(1 .- yhat .+1e-15) )
 threshold = [.95, .92, .90, .88, .85, .80, .75, .70, .65]
@@ -86,6 +96,14 @@ for thresh in threshold
         recode_pred = [ifelse(x <= (1.0-thresh), 0.0, x) for x in recode_pred]
         push!(mce_out, loss(ytest, recode_pred) |> sum)
 end
+
+## Insert modified prediction here - but they're the same!
+alt_preds = Float64[ifelse(x >= .92, 1.0, x) for x in submission_sample.Pred]
+alt_preds == submission_sample.Pred
+alt_preds = Float64[ifelse(x >= .75, 1.0, x) for x in submission_sample.Pred]
+submission_sample_alt = copy(submission_sample)
+submission_sample_alt.Pred = alt_preds
+CSV.write("data/submission_xgb2022_tune.csv", select(submission_sample_alt, Not(:SeedDiff) ))
 
 ###########################
 # measuring the number of rounds

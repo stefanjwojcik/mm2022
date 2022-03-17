@@ -50,7 +50,7 @@ function get_seed_submission_diffs(submission_sample, seeds_df)
 		# get seeds for team1 and team
 		row1 = filter(row -> row[:Season] == season && row[:TeamID] == team1, seeds_df);
 		row2 = filter(row -> row[:Season] == season && row[:TeamID] == team2, seeds_df);
-		submission_sample.SeedDiff[getfield(row, :row)] = (row1.seed_int - row2.seed_int)[1]
+		submission_sample.SeedDiff[row.row] = (row1.seed_int - row2.seed_int)[1]
 	end
 	return submission_sample[:, [:SeedDiff]]
 end

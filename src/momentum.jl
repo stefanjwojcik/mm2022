@@ -48,14 +48,15 @@ function make_momentum(tourney_df, season_df)
 end
 
 function make_momentum_sub(submission_sample, momentum_df)
-	submission_sample.ScoreDiff = 0.0
+	submission_sample.ScoreDiff .= 0.0
+	submission_sample.row = collect(1:nrow(submission_sample))
 	for row in eachrow(submission_sample)
 		season, team1, team2 = parse.(Int, split(row.ID, "_"))
 		row1 = filter(row -> row[:Season] == season && row[:TeamID] == team1, momentum_df);
 		size(row1)[1]==0 && continue
 		row2 = filter(row -> row[:Season] == season && row[:TeamID] == team2, momentum_df);
 		size(row2)[1]==0 && continue
-		submission_sample.ScoreDiff[getfield(row, :row)] = (row1.ScoreDiff - row2.ScoreDiff)[1]
+		submission_sample.ScoreDiff[row.row] = (row1.ScoreDiff - row2.ScoreDiff)[1]
 	end
 	return submission_sample[:, [:ScoreDiff]]
 end

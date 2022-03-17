@@ -155,14 +155,15 @@ function get_elo_tourney_diffs(season_elos, df_tour)
 end
 
 function get_elo_submission_diffs(submission_sample, season_elos)
-	submission_sample.Elo_diff = -99.0
+	submission_sample.Elo_diff .= -99.0
+	submission_sample.row = collect(1:nrow(submission_sample))
 	for row in eachrow(submission_sample)
 		season, team1, team2 = parse.(Int, split(row.ID, "_"))
 		row1 = filter(row -> row[:season] == season && row[:team_id] == team1, season_elos);
 		row1 = mapcols(x -> mean(x), copy(select(row1, :season_elo))) #lambda fn for cols
 		row2 = filter(row -> row[:season] == season && row[:team_id] == team2, season_elos);
 		row2 = mapcols(x -> mean(x), copy(select(row2, :season_elo))) #lambda fn for cols
-		submission_sample.Elo_diff[getfield(row, :row)] = (row1.season_elo - row2.season_elo)[1]
+		submission_sample.Elo_diff[row.row] = (row1.season_elo - row2.season_elo)[1]
 	end
 	return submission_sample[:, [:Elo_diff]]
 end
