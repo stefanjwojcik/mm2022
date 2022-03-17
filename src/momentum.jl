@@ -9,7 +9,7 @@ function make_momentum(tourney_df, season_df)
     end_of_season = filter(row -> row[:DayNum] > 120, season_df)
 
     end_of_season.ScoreDiff = end_of_season.WScore - end_of_season.LScore
-    deletecols!(season_df, [:DayNum, :WScore, :LScore, :WLoc, :NumOT])
+    select!(season_df, Not([:DayNum, :WScore, :LScore, :WLoc, :NumOT]))
 
     wins = end_of_season[:, [:ScoreDiff, :WTeamID, :Season]]
     losses = end_of_season[:, [:ScoreDiff, :LTeamID, :Season]]
@@ -22,24 +22,24 @@ function make_momentum(tourney_df, season_df)
     fulldf = [wins; losses]
 
 	# aggregate team diffs from end of season
-    scores = aggregate(groupby(fulldf, [:TeamID, :Season]), median)
-	rename!(scores, :ScoreDiff_median => :ScoreDiff)
+    scores = agg(fulldf, [:TeamID, :Season], median)
+	#rename!(scores, Dict(:ScoreDiff_median => :ScoreDiff))
 	scores_out = copy(scores)
 	# rename the colums and merge to winning
 	rename!(scores, :ScoreDiff => :WScores, :TeamID => :WTeamID)
-	dummy = join(tourney_df, scores, on = [:WTeamID, :Season], kind = :left)
+	dummy = leftjoin(tourney_df, scores, on = [:WTeamID, :Season])
 	# rename the columns and merge to losing
 	rename!(scores, :WTeamID => :LTeamID, :WScores => :LScores)
-	dummy = join(dummy, scores, on = [:LTeamID, :Season], kind = :left)
-	dummy.ScoreDiff = dummy.WScores - dummy.LScores
+	dummy = leftjoin(dummy, scores, on = [:LTeamID, :Season])
+	dummy.ScoreDiff .= dummy.WScores .- dummy.LScores
 
 	# Make the tournament feature
-	df_wins = copy(dummy[[:Season, :WTeamID, :LTeamID, :ScoreDiff]])
-	df_wins.Result = 1
+	df_wins = copy(dummy[:, [:Season, :WTeamID, :LTeamID, :ScoreDiff]])
+	df_wins.Result .= 1
 
-	df_losses = copy(dummy[[:Season, :WTeamID, :LTeamID, :ScoreDiff]])
+	df_losses = copy(dummy[:, [:Season, :WTeamID, :LTeamID, :ScoreDiff]])
 	df_losses.ScoreDiff = df_losses.ScoreDiff*-1
-	df_losses.Result = 0
+	df_losses.Result .= 0
 
 	println("done")
 	momentum_features = [df_wins; df_losses]
