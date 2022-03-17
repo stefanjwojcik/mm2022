@@ -70,7 +70,7 @@ function eff_stat_seasonal_means(df::DataFrame) # this is season_df_detail
 	W_cols = [!in(x, [ "WScore"]) & occursin(r"W|Season", x)  for x in String.(names(df))]	# make win and loss average datasets
 	L_cols = [!in(x, [ "LScore"]) & occursin(r"L|Season", x)  for x in String.(names(df))]	# make win and loss average datasets
 
-	Wmean = aggregate(df[W_cols], [:WTeamID, :Season], mean)
+	Wmean = aggregate(df[:, W_cols], [:WTeamID, :Season], mean)
 	alt_names = [Symbol(replace(String(x), "W" => "")) for x in names(Wmean)]
 	# And actually alter the names in place
 	names!(Wmean, alt_names)
