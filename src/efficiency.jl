@@ -76,7 +76,7 @@ function eff_stat_seasonal_means(df::DataFrame) # this is season_df_detail
 	names!(Wmean, alt_names)
 	# losing team
 	print(L_cols)
-	Lmean = aggregate(df[!, L_cols], [:LTeamID, :Season], mean)
+	Lmean = aggregate(df[:, L_cols], [:LTeamID, :Season], mean)
 
 	alt_names = [Symbol(replace(String(x), "L" => "")) for x in names(Lmean)]
 	# And actually alter the names in place
