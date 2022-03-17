@@ -63,7 +63,8 @@ function eff_stat_seasonal_means(df::DataFrame) # this is season_df_detail
 	#:LFTA, :LOR, :LDR, :LAst, :LTO, :LStl, :LBlk, :LPF])
 
 	#instead just dropping a few
-	deletecols!(df, [:WLoc])
+	#deletecols!(df, [:WLoc])
+	select!(df, Not(:WLoc))
 
 	# take mean, min, max of each of the advanced measures
 	W_cols = [!in(x, [ "WScore"]) & occursin(r"W|Season", x)  for x in String.(names(df))]	# make win and loss average datasets
@@ -74,7 +75,8 @@ function eff_stat_seasonal_means(df::DataFrame) # this is season_df_detail
 	# And actually alter the names in place
 	names!(Wmean, alt_names)
 	# losing team
-	Lmean = aggregate(df[L_cols], [:LTeamID, :Season], mean)
+	print(L_cols)
+	Lmean = aggregate(df[!, L_cols], [:LTeamID, :Season], mean)
 
 	alt_names = [Symbol(replace(String(x), "L" => "")) for x in names(Lmean)]
 	# And actually alter the names in place
