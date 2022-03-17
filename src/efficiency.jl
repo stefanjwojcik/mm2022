@@ -113,17 +113,19 @@ Returns team seasonal efficiency differences in tournament-friendly format
 """
 function get_eff_tourney_diffs(Wfdat, Lfdat, fdat, df_tour)
 	# NEED TO MAKE THIS COMPATIBLE WITH THE REST OF THE DATA: TAKE DIFFS AND CONCATENATE
-	df_tour = CSVFiles.load("/home/swojcik/mm2020/data/MDataFiles_Stage1/MNCAATourneyCompactResults.csv") |> DataFrame
+	#df_tour = CSV.read("/home/swojcik/mm2020/data/MDataFiles_Stage1/MNCAATourneyCompactResults.csv", DataFrame)
 
 	select!(df_tour, Not([ :WScore, :LScore, :WLoc, :NumOT]))
-	df = join(df_tour, Wfdat, on = [:Season, :WTeamID], kind = :left)
-	df = join(df, Lfdat, on = [:Season, :LTeamID], kind = :left)
+	df = leftjoin(df_tour, Wfdat, on = [:Season, :WTeamID])
+	df = leftjoin(df, Lfdat, on = [:Season, :LTeamID])
 
 		# Option to create two functions - one to create
 	df_concat = DataFrame()
 	vars_to_add = [String(x) for x in names(fdat) if !in(x, [:Season, :TeamID])]
 	for var in vars_to_add
-		df_concat[Symbol("Diff_"*var)] = df[Symbol("W"*var)]-df[Symbol("L"*var)]
+		if var !== "Season"
+			df_concat[:, Symbol("Diff_"*var)] = df[:, Symbol("W"*var)]-df[:, Symbol("L"*var)]
+		end
 	end
 
 	pred_vars = names(df_concat)
