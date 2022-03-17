@@ -39,7 +39,7 @@ end
 function final_elo_per_season(df::DataFrame, team_id::Int64)
 	d = copy(df)
 	d = d[ (d.WTeamID .== team_id) .| (d.LTeamID .== team_id ), : ]
-	sort!(d, (:Season, :DayNum), rev=true)
+	sort!(d, [:Season, :DayNum], rev=true)
 	unique!(d, :Season)
 	w_mask = d.WTeamID .== team_id
 	l_mask = d.LTeamID .== team_id

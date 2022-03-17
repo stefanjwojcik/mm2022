@@ -17,13 +17,13 @@ using CSV, DataFrames, Statistics, MLJ
 export  make_seeds,
         get_seed_submission_diffs,
         agg
-        #eff_stat_seasonal_means,
-        #get_eff_tourney_diffs,
-        #get_eff_submission_diffs,
-        #Elo,
-        #elo_ranks,
-        #get_elo_tourney_diffs,
-        #get_elo_submission_diffs,
+        eff_stat_seasonal_means,
+        get_eff_tourney_diffs,
+        get_eff_submission_diffs,
+        Elo,
+        elo_ranks,
+        get_elo_tourney_diffs,
+        get_elo_submission_diffs,
         #make_momentum,
         #make_momentum_sub,
         #make_ranef_features,
@@ -39,7 +39,7 @@ export  make_seeds,
 include("utils.jl")
 include("efficiency.jl")
 include("seeds.jl")
-#include("elo.jl")
+include("elo.jl")
 #include("momentum.jl")
 #include("teameffects.jl")
 
