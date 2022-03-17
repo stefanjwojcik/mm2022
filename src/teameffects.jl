@@ -1,4 +1,4 @@
-using CSVFiles, MixedModels, DataFrames
+#using CSVFiles, MixedModels, DataFrames
 
 #season_df = CSVFiles.load("/home/swojcik/mm2020/data/MDataFiles_Stage1/MRegularSeasonCompactResults.csv") |> DataFrame
 #tourney_df  = CSVFiles.load("/home/swojcik/mm2020/data/MDataFiles_Stage1/MNCAATourneyCompactResults.csv") |> DataFrame
@@ -10,12 +10,12 @@ function make_team_effects(season_df)
 	season_df.Season = CategoricalArray(season_df.Season)
 
 	wins = select(season_df, [:WTeamID, :Season])
-	rename!(wins, :WTeamID => :TeamID)
-	wins.Result = 1
+	rename!(wins, Dict(:WTeamID => :TeamID))
+	wins.Result .= 1
 
 	losses = select(season_df, [:LTeamID, :Season])
-	rename!(losses, :LTeamID => :TeamID)
-	losses.Result = 0
+	rename!(losses, Dict(:LTeamID => :TeamID))
+	losses.Result .= 0
 
 	dat = [wins;losses]
 	sort!(dat, ( :Season, :TeamID))
@@ -37,8 +37,8 @@ function make_ranef_features(tourney_df, ranefs)
 	#tourney_df.ranef = 0.0
 	wins  = rename(copy(ranefs), :TeamID => :WTeamID, :ranef => :wranefs)
 	losses  = rename(copy(ranefs), :TeamID => :LTeamID, :ranef => :lranefs)
-	stub = join(tourney_df, wins, on = [:WTeamID, :Season], kind = :left)
-	full = join(stub, losses, on = [:LTeamID, :Season], kind = :left)
+	stub = leftjoin(tourney_df, wins, on = [:WTeamID, :Season])
+	full = left(stub, losses, on = [:LTeamID, :Season])
 	full.RanefDiff = full.wranefs - full.lranefs
 
 	df_wins = copy(full[[:Season, :WTeamID, :LTeamID, :RanefDiff]])

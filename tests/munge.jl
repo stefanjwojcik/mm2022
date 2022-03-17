@@ -1,6 +1,6 @@
 ## MM2020 Train/Test
 # Create full submission dataset
-submission_features = hcat(seed_submission, eff_submission, elo_submission, momentum_submission, ranef_submission)
+submission_features = hcat(seed_submission, eff_submission, elo_submission, momentum_submission)
 
 ##########################################################################
 

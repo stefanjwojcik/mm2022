@@ -6,7 +6,7 @@ module mm2022
 ##
 ##############################################################################
 
-using CSV, DataFrames, Statistics, MLJ
+using CSV, DataFrames, Statistics, MLJ, MixedModels
 
 ##############################################################################
 ##
@@ -41,7 +41,7 @@ include("efficiency.jl")
 include("seeds.jl")
 include("elo.jl")
 include("momentum.jl")
-#include("teameffects.jl")
+include("teameffects.jl")
 
 end # module
 
