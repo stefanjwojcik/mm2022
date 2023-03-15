@@ -111,7 +111,7 @@ get_eff_tourney_diffs(Wfdat, Lfdat, fdat, df_tour)
 
 Returns team seasonal efficiency differences in tournament-friendly format
 """
-function get_eff_tourney_diffs(Wfdat, Lfdat, fdat, df_tour)
+function get_eff_tourney_diffs(Wfdat::DataFrame, Lfdat::DataFrame, fdat::DataFrame, df_tour::DataFrame)
 	# NEED TO MAKE THIS COMPATIBLE WITH THE REST OF THE DATA: TAKE DIFFS AND CONCATENATE
 	#df_tour = CSV.read("/home/swojcik/mm2020/data/MDataFiles_Stage1/MNCAATourneyCompactResults.csv", DataFrame)
 
@@ -142,7 +142,7 @@ function get_eff_tourney_diffs(Wfdat, Lfdat, fdat, df_tour)
 	df_losses[:, :Result] .= 0
 
 	df_out = [df_wins; df_losses]
-	return dropmissing(df_out)
+	return dropmissing(select(df_out, Not(:Diff_TeamID)))
 end
 
 # drop missing obs in the data
@@ -154,12 +154,12 @@ get_eff_submission_diffs(submission_sample, fdat)
 
 Returns seasonal efficiency score differences matched to a submission sample 
 """
-function get_eff_submission_diffs(submission_sample, fdat)
+function get_eff_submission_diffs(submission_sample::DataFrame, fdat::DataFrame)
 	final_out = DataFrame()
 	# The variables to take diffs
 	vars_to_add = [String(x) for x in names(fdat) if !in(x, [:Season, :TeamID])]
 
-	for row in eachrow(submission_sample)
+	@showprogress for row in eachrow(submission_sample)
 		season, team1, team2 = parse.(Int, split(row.ID, "_"))
 		# filter each dataframe to get each team avg when winning/losing - team 1
 		row1 = filter(row -> row[:Season] == season && row[:TeamID] == team1, fdat);
@@ -176,5 +176,5 @@ function get_eff_submission_diffs(submission_sample, fdat)
 		# append the final data
 		append!(final_out, out)
 	end
-	return final_out
+	return select(final_out, Not(:Diff_TeamID))
 end

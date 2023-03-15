@@ -38,14 +38,14 @@ seeds_features_min = filter(row -> row[:Season] >= 2003, seeds_features)
 eff_features_min = filter(row -> row[:Season] >= 2003, eff_features)
 elo_features_min = filter(row -> row[:Season] >= 2003, elo_features)
 momentum_features_min = filter(row -> row[:Season] >= 2003, momentum_features)
-#ranef_features_min = filter(row -> row[:Season] >= 2003, ranef_features)
+ranef_features_min = filter(row -> row[:Season] >= 2003, ranef_features)
 
 # create full stub
 
 stub = leftjoin(seeds_features_min, eff_features_min, on = [:WTeamID, :LTeamID, :Season, :Result]);
 fdata = leftjoin(stub, elo_features, on = [:WTeamID, :LTeamID, :Season, :Result]);
 fdata = leftjoin(fdata, momentum_features_min, on = [:WTeamID, :LTeamID, :Season, :Result]);
-#fdata = join(fdata, ranef_features_min, on = [:WTeamID, :LTeamID, :Season, :Result], kind = :left);
+fdata = leftjoin(fdata, ranef_features_min, on = [:WTeamID, :LTeamID, :Season, :Result]);
 
 exclude = [:Result, :Season, :LTeamID, :WTeamID]
 select!(fdata, Not(exclude))
@@ -55,5 +55,5 @@ seed_submission = get_seed_submission_diffs(copy(submission_sample), df_seeds)
 eff_submission = get_eff_submission_diffs(copy(submission_sample), effdat) #see above
 elo_submission = get_elo_submission_diffs(copy(submission_sample), season_elos)
 momentum_submission = make_momentum_sub(copy(submission_sample), momentum_df)
-#ranef_submission = make_ranef_sub(copy(submission_sample), ranefs)
-@test size(seed_submission, 1) == size(eff_submission, 1) == size(elo_submission, 1) == size(momentum_submission, 1)
+ranef_submission = make_ranef_sub(copy(submission_sample), ranefs)
+@test size(seed_submission, 1) == size(eff_submission, 1) == size(elo_submission, 1) == size(momentum_submission, 1) == size(submission_sample, 1) == size(ranef_submission, 1)
