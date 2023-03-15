@@ -31,7 +31,7 @@ elo_features = get_elo_tourney_diffs(season_elos, copy(tourney_df))
 # Momentum
 momentum_features, momentum_df = make_momentum(copy(tourney_df), copy(season_df))
 # Team Effects
-ranef_features = make_ranef_features(copy(tourney_df), copy(season_df))
+ranef_features, ranefs = make_ranef_features(copy(tourney_df), copy(season_df))
 
 ### Full feature dataset
 seeds_features_min = filter(row -> row[:Season] >= 2003, seeds_features)

@@ -52,7 +52,7 @@ function make_ranef_features(tourney_df, season_df)
 
 	println("done")
 	df_predictions = [df_wins; df_losses]
-	return df_predictions
+	return df_predictions, ranefs
 end
 
 
