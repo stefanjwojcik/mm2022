@@ -58,7 +58,7 @@ end
 
 function make_ranef_sub(submission_sample, ranefs)
 	submission_sample.RanefDiff .= -99.0
-	for row in eachrow(submission_sample)
+	@showprogress for row in eachrow(submission_sample)
 		season, team1, team2 = parse.(Int, split(row.ID, "_"))
 		# get seeds for team1 and team
 		row1 = filter(row -> row[:Season] == season && row[:TeamID] == team1, ranefs);

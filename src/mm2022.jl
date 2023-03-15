@@ -6,7 +6,7 @@ module mm2022
 ##
 ##############################################################################
 
-using CSV, DataFrames, Statistics, MLJ, MixedModels, CategoricalArrays
+using CSV, DataFrames, Statistics, MLJ, MixedModels, CategoricalArrays, ProgressMeter
 
 ##############################################################################
 ##
