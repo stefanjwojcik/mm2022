@@ -42,14 +42,20 @@ end
 # returns the correct seed features for the submission sample
 function get_seed_submission_diffs(submission_sample, seeds_df)
 	#seed to int
-	submission_sample.SeedDiff = repeat([-99], nrow(submission_sample))
+	submission_sample.SeedDiff = repeat([-99.0], nrow(submission_sample))
 	seeds_df.seed_int = seed_to_int.(seeds_df.Seed)
 	@showprogress for row in eachrow(submission_sample)
 		season, team1, team2 = parse.(Int, split(row.ID, "_"))
 		# get seeds for team1 and team
 		row1 = filter(row -> row[:Season] == season && row[:TeamID] == team1, seeds_df);
 		row2 = filter(row -> row[:Season] == season && row[:TeamID] == team2, seeds_df);
+		# if either team doesn't have a seed, insert a seed diff of -99, then go back and randomly impute
+		if nrow(row1) == 0 || nrow(row2) == 0
+			continue
+		end
 		submission_sample.SeedDiff[rownumber(row)] = (row1.seed_int - row2.seed_int)[1]
 	end
+	# for this with -99, impute randomly from the non-missing 
+	submission_sample = impute_random(submission_sample, :SeedDiff)
 	return submission_sample[:, [:SeedDiff]]
 end

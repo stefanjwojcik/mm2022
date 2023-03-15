@@ -63,7 +63,12 @@ function make_ranef_sub(submission_sample, ranefs)
 		# get seeds for team1 and team
 		row1 = filter(row -> row[:Season] == season && row[:TeamID] == team1, ranefs);
 		row2 = filter(row -> row[:Season] == season && row[:TeamID] == team2, ranefs);
+		if size(row1, 1) == 0 || size(row2, 1) == 0
+			continue
+		end
 		submission_sample.RanefDiff[rownumber(row)] = (row1.ranef - row2.ranef)[1]
 	end
+	submission_sample = impute_random(submission_sample, :RanefDiff)
+
 	return submission_sample[:, [:RanefDiff]]
 end

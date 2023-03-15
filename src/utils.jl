@@ -17,3 +17,10 @@ function get_mens_teams(submission_sample)
 	end
 	return filter(row -> row.ID != "0", submission_sample)
 end 
+
+function impute_random(df, col, na=-99.0) 
+	coltoimpute = df[!, col]
+	coltoimpute[coltoimpute .== na] .= rand(coltoimpute[coltoimpute .!= na], sum(coltoimpute .== na))
+	df[!, col] = coltoimpute
+	return df
+end

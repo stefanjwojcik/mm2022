@@ -1,13 +1,13 @@
 ## MM2020 Train/Test
 # Create full submission dataset
-submission_features = hcat(seed_submission, eff_submission, elo_submission, momentum_submission)
+submission_features = hcat(seed_submission, eff_submission, elo_submission, momentum_submission, ranef_submission)
 
 ##########################################################################
 
 # TRAINING
 include("runtests.jl")
 # Join the two feature sets
-featurecols = [names(seed_submission), names(eff_submission), names(elo_submission), names(momentum_submission)]
+featurecols = [names(seed_submission), names(eff_submission), names(elo_submission), names(momentum_submission), names(ranef_submission)]
 featurecols = collect(Iterators.flatten(featurecols))
 fullX = [fdata[:, featurecols]; submission_features[:, featurecols]]
 fullY = [seeds_features_min.Result; repeat([0], size(submission_features, 1))]
@@ -22,8 +22,8 @@ using MLJ, LossFunctions, Pipe, MLJXGBoostInterface
 #fullY = CSVFiles.load("fullY.csv") |> DataFrame
 
 # create array of training and testing rows
-train, test = partition(1:2362, 0.7, shuffle=true) #the original dataset size is 2362
-validate = [2363:size(fullY, 1)...] # this is the submission data 
+train, test = partition(1:nrow(seeds_features_min), 0.7, shuffle=true) #the original dataset size is 2362
+validate = [nrow(seeds_features_min)+1:size(fullY, 1)...] # this is the submission data 
 
 # Recode result to win/ loss
 y = categorical([fullY[x] == 0 ? "lose" : "win" for x in 1:length(fullY)])
@@ -78,10 +78,48 @@ plot(params[:, 1], measures, seriestype=:scatter)
 # Predict onto the submission_sample
 sub_sample = predict(xg_model, rows = validate)
 submission_sample[:, :Pred] = pdf.(sub_sample, "win")
-CSV.write("data/submission_xgb2022_no_tune.csv", select(submission_sample, Not(:SeedDiff) ))
+CSV.write("data/submission_xgb2023_no_tune.csv", submission_sample)
 
+#reduce submission sample to just the seeded teams 
+seeds23 = df_seeds |> (data -> filter(:Season => x -> x .== 2023, data)) 
+# limit submission_sample only to the seeded teams
+submission_sample.Team1 = [x[2] for x in split.(submission_sample.ID, "_")]
+submission_sample.Team2 = [x[3] for x in split.(submission_sample.ID, "_")]
+tourney_teams = filter([:Team1, :Team2] => (x, y) -> x ∈ string.(seeds23.TeamID) && y ∈ string.(seeds23.TeamID), submission_sample)
+# slots 
+slots = CSV.read("data/MNCAATourneySlots.csv", DataFrame) |> 
+        (data -> filter(:Season => x -> x .== 2023, data)) 
+
+teams = CSV.read("data/MTeams.csv", DataFrame) |> 
+        (data -> filter(:TeamID => x -> x ∈ seeds23.TeamID, data)) |> 
+        (data -> select(data, [:TeamID, :TeamName])) |>
+        (data -> leftjoin(tourney_teams, data, on = [:Team1 => :TeamID])) |>
+        (data -> rename(data, [:TeamName => :TeamName1])) 
+
+teams2 = CSV.read("data/MTeams.csv", DataFrame)  |>
+        (data -> leftjoin(teams, data, on = [:Team2 => :TeamID]))
+        (data -> rename(data, [:TeamName => :TeamName2])) |>
+
+
+# Now, create a matrix of predictions for each team 
+allteams = vcat(tourney_teams.Team1, tourney_teams.Team2)
+#make a matrix of size length(unique(allteams)) X length(unique(allteams))
+#fill with zeros, then get the probability of i > j 
+function get_probs(submission_sample)
+        prob_matrix = zeros(Float64, length(unique(allteams)), length(unique(allteams)))
+        #fill with probabilities
+        @showprogress for row in eachrow(submission_sample)
+                season, team1, team2 = split(row.ID, "_")
+                t1 = findfirst(x -> x == team1, unique(allteams))
+                t2 = findfirst(x -> x == team2, unique(allteams))
+                prob_matrix[t1, t2] = prob_matrix[t2, t1] = row.Pred
+        end
+        return prob_matrix
+end
 # Figure out which teams you picked 
 
+# for round 1, just impute the predictions as-is, provide team id of winner pr(A > B) = p
+# for round 2, pr(A > C | A > B) = p(A > C | A > B) = p(A > C) * p(A > B | A > C) / p(A > B)
 
 ############################### TUNING THE SUBMISSION
 using LossFunctions

@@ -163,7 +163,11 @@ function get_elo_submission_diffs(submission_sample, season_elos)
 		row1 = mapcols(x -> mean(x), copy(select(row1, :season_elo))) #lambda fn for cols
 		row2 = filter(row -> row[:season] == season && row[:team_id] == team2, season_elos);
 		row2 = mapcols(x -> mean(x), copy(select(row2, :season_elo))) #lambda fn for cols
+		if nrow(row1) == 0 || nrow(row2) == 0
+			continue
+		end
 		submission_sample.Elo_diff[row.row] = (row1.season_elo - row2.season_elo)[1]
 	end
+	submission_sample = impute_random(submission_sample, :Elo_diff)
 	return submission_sample[:, [:Elo_diff]]
 end
