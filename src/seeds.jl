@@ -36,21 +36,21 @@ function make_seeds(df_seeds, df_tour)
 
 	println("done")
 	df_predictions = [df_wins; df_losses]
-
+	return df_predictions
 end
 
 # returns the correct seed features for the submission sample
 function get_seed_submission_diffs(submission_sample, seeds_df)
 	#seed to int
 	submission_sample.SeedDiff = repeat([-99], nrow(submission_sample))
-	submission_sample.row = collect(1:nrow(submission_sample))
+	submission_sample.rownum = collect(1:nrow(submission_sample))
 	seeds_df.seed_int = seed_to_int.(seeds_df.Seed)
 	for row in eachrow(submission_sample)
 		season, team1, team2 = parse.(Int, split(row.ID, "_"))
 		# get seeds for team1 and team
 		row1 = filter(row -> row[:Season] == season && row[:TeamID] == team1, seeds_df);
 		row2 = filter(row -> row[:Season] == season && row[:TeamID] == team2, seeds_df);
-		submission_sample.SeedDiff[row.row] = (row1.seed_int - row2.seed_int)[1]
+		submission_sample.SeedDiff[row.rownum] = (row1.seed_int - row2.seed_int)[1]
 	end
 	return submission_sample[:, [:SeedDiff]]
 end

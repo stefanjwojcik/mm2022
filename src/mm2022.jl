@@ -6,7 +6,7 @@ module mm2022
 ##
 ##############################################################################
 
-using CSV, DataFrames, Statistics, MLJ, MixedModels
+using CSV, DataFrames, Statistics, MLJ, MixedModels, CategoricalArrays
 
 ##############################################################################
 ##
@@ -26,6 +26,7 @@ export  make_seeds,
         get_elo_submission_diffs,
         make_momentum,
         make_momentum_sub,
+        make_team_effects,
         make_ranef_features,
         make_ranef_sub
 

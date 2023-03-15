@@ -9,13 +9,14 @@ using mm2022, DataFrames, CSV
 #   Difference in the variance of turnovers in the game to game free throw percentage.
 
 # Get the submission sample
-submission_sample = CSV.read("data/MSampleSubmissionStage2.csv", DataFrame)
+submission_sample = CSV.read("data/SampleSubmission2023.csv", DataFrame)
+submission_sample = mm2022.get_mens_teams(submission_sample)
 
 # Get the source seeds:
-df_seeds = CSV.read("data/MDataFiles_Stage2/MNCAATourneySeeds.csv", DataFrame)
-season_df = CSV.read("data/MDataFiles_Stage2/MRegularSeasonCompactResults.csv", DataFrame) 
-season_df_detail = CSV.read("data/MDataFiles_Stage2/MRegularSeasonDetailedResults.csv", DataFrame) 
-tourney_df  = CSV.read("data/MDataFiles_Stage2/MNCAATourneyCompactResults.csv", DataFrame) 
+df_seeds = CSV.read("data/MNCAATourneySeeds.csv", DataFrame)
+season_df = CSV.read("data/MRegularSeasonCompactResults.csv", DataFrame) 
+season_df_detail = CSV.read("data/MRegularSeasonDetailedResults.csv", DataFrame) 
+tourney_df  = CSV.read("data/MNCAATourneyCompactResults.csv", DataFrame) 
 #ranefs = CSV.read("data/raneffects.csv", DataFrame) # eed to make it 
 ##############################################################
 # Create training features for valid historical data
@@ -25,12 +26,12 @@ seeds_features = make_seeds(copy(df_seeds), copy(tourney_df))
 Wfdat, Lfdat, effdat = eff_stat_seasonal_means(copy(season_df_detail))
 eff_features = get_eff_tourney_diffs(Wfdat, Lfdat, effdat, copy(tourney_df))
 # ELO
-season_elos = elo_ranks(Elo("data/MDataFiles_Stage1/MRegularSeasonCompactResults.csv"))
+season_elos = elo_ranks(Elo("data/MRegularSeasonCompactResults.csv"))
 elo_features = get_elo_tourney_diffs(season_elos, copy(tourney_df))
 # Momentum
 momentum_features, momentum_df = make_momentum(copy(tourney_df), copy(season_df))
 # Team Effects
-#ranef_features = make_ranef_features(copy(tourney_df), ranefs)
+ranef_features = make_ranef_features(copy(tourney_df), copy(season_df))
 
 ### Full feature dataset
 seeds_features_min = filter(row -> row[:Season] >= 2003, seeds_features)
